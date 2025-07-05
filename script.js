@@ -1,6 +1,6 @@
 // 🔐 Contraseñas por usuario
 const contraseñas = {
-  "admin@lsc.com": "123",
+  "fausto@lsc.com": "123",
   "juan@lsc.com": "123",
   "sofia@lsc.com": "123",
   "carlos@lsc.com": "123",
@@ -11,9 +11,31 @@ const contraseñas = {
 let usuario = "";
 let esAdmin = false;
 
-let repuestos = JSON.parse(localStorage.getItem("repuestos")) || [];
-let trabajos = JSON.parse(localStorage.getItem("trabajos")) || [];
+let repuestos = [];
+let trabajos = [];
 let carrito = [];
+
+function cargarRepuestosFirebase() {
+  firebase.database().ref("repuestos").on("value", (snapshot) => {
+    repuestos = snapshot.val() || [];
+    renderizarRepuestos();
+  });
+}
+
+function cargarTrabajosFirebase() {
+  firebase.database().ref("trabajos").on("value", (snapshot) => {
+    trabajos = snapshot.val() || [];
+    renderizarTrabajos();
+  });
+}
+
+function guardarRepuestos() {
+  firebase.database().ref("repuestos").set(repuestos);
+}
+
+function guardarTrabajos() {
+  firebase.database().ref("trabajos").set(trabajos);
+}
 
 
 function vaciarCarrito() {
@@ -25,7 +47,7 @@ function vaciarCarrito() {
   }
 }
 
-// Login por correo 
+
 
 let correoSeleccionado = "";
 
@@ -33,7 +55,6 @@ function loginUsuario() {
   correoSeleccionado = document.getElementById("selector-correo").value;
   if (!correoSeleccionado) return;
 
-  // Abre el modal de contraseña
   document.getElementById("modal-login").classList.remove("oculto");
 }
 
@@ -43,7 +64,7 @@ function confirmarLogin() {
 
   if (clave === contraseñas[correoSeleccionado]) {
     usuario = correoSeleccionado;
-    esAdmin = usuario === "admin@lsc.com";
+    esAdmin = usuario === "fausto@lsc.com";
 
     localStorage.setItem("usuario", usuario);
     localStorage.setItem("esAdmin", esAdmin);
@@ -113,8 +134,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  renderizarRepuestos();
-  renderizarTrabajos();
+  cargarRepuestosFirebase();
+  cargarTrabajosFirebase();
 });
 
 
@@ -126,7 +147,7 @@ function agregarRepuesto() {
 
   if (nombre && precio && imagen) {
     repuestos.push({ nombre, precio, imagen });
-    localStorage.setItem("repuestos", JSON.stringify(repuestos));
+    guardarRepuestos();
     renderizarRepuestos();
   }
 }
@@ -140,7 +161,7 @@ function renderizarRepuestos() {
   cont.innerHTML = "";
 
   repuestos.forEach((r, index) => {
-    const cantidad = contarProductoEnCarrito(r.nombre); // 👈 nuevo
+    const cantidad = contarProductoEnCarrito(r.nombre); 
 
     const card = document.createElement("div");
     card.className = "card";
@@ -180,7 +201,7 @@ function editarRepuesto(index) {
       precio: parseFloat(nuevoPrecio),
       imagen: nuevaImagen
     };
-    localStorage.setItem("repuestos", JSON.stringify(repuestos));
+    guardarRepuestos();
     renderizarRepuestos();
     mostrarMensajeEnviado("✅ Repuesto actualizado");
   }
@@ -189,7 +210,7 @@ function editarRepuesto(index) {
 function eliminarRepuesto(index) {
   if (confirm("¿Seguro que querés eliminar este repuesto?")) {
     repuestos.splice(index, 1);
-    localStorage.setItem("repuestos", JSON.stringify(repuestos));
+    guardarRepuestos();
     renderizarRepuestos();
     mostrarMensajeEnviado("🗑️ Repuesto eliminado");
   }
@@ -278,9 +299,9 @@ function enviarTrabajo() {
 
   const resumen = carrito.map(i => i.nombre).join(", ");
   const total = document.getElementById("total-final").textContent;
-
+  
   const templateParams = {
-    user_email: "igna0409@gmail.com", // Email del jefe
+    user_email: "igna0409@gmail.com", 
     name: usuario.split("@")[0],
     user: usuario,
     repuestos: resumen,
@@ -288,7 +309,7 @@ function enviarTrabajo() {
     email: usuario
   };
 
-  console.log("📤 Enviando trabajo:", templateParams); // DEBUG
+  console.log("📤 Enviando trabajo:", templateParams); 
 
   emailjs.send("service_z7hd523", "template_trabajo", templateParams)
     .then(() => {
@@ -315,7 +336,7 @@ function agregarTrabajo() {
     precio: document.getElementById("precio").value
   };
   trabajos.push(trabajo);
-  localStorage.setItem("trabajos", JSON.stringify(trabajos));
+  guardarTrabajos();
   renderizarTrabajos();
 }
 
@@ -369,8 +390,8 @@ function mostrarMensajeEnviado(texto) {
 
 // 🚀 Inicialización
 document.addEventListener("DOMContentLoaded", () => {
-  renderizarRepuestos();
-  renderizarTrabajos();
+  cargarRepuestosFirebase();
+  cargarTrabajosFirebase();
 });
 
 document.getElementById("form-contacto").addEventListener("submit", function(e) {
@@ -412,7 +433,6 @@ function editarTrabajo(index) {
   const nuevoTrabajo = prompt("Nuevo trabajo realizado:", t.trabajo);
   const nuevoPrecio = prompt("Nuevo precio:", t.precio);
 
-  // Validar que no sean null o vacíos (permitiendo 0 en precio)
   if (
     nuevoMecanico !== null && nuevoMecanico.trim() !== "" &&
     nuevoTrabajo !== null && nuevoTrabajo.trim() !== "" &&
@@ -423,7 +443,7 @@ function editarTrabajo(index) {
       trabajo: nuevoTrabajo.trim(),
       precio: parseFloat(nuevoPrecio)
     };
-    localStorage.setItem("trabajos", JSON.stringify(trabajos));
+    guardarTrabajos();
     renderizarTrabajos();
     mostrarMensajeEnviado("✅ Trabajo actualizado");
   } else {
@@ -435,7 +455,7 @@ function editarTrabajo(index) {
 function eliminarTrabajo(index) {
   if (confirm("¿Seguro que querés eliminar este trabajo?")) {
     trabajos.splice(index, 1);
-    localStorage.setItem("trabajos", JSON.stringify(trabajos));
+    guardarTrabajos();
     renderizarTrabajos();
     mostrarMensajeEnviado("🗑️ Trabajo eliminado");
   }
@@ -504,4 +524,3 @@ if (esAdmin) {
 
 btnEditar.classList.add("btn-editar");
 btnEliminar.classList.add("btn-eliminar");
-

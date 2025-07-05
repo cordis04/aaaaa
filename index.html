@@ -8,11 +8,14 @@
   <link rel="icon" type="image/png" href="iconos/Logo lsc pag.png">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
- 
-  <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
-  <script>
-    (function(){
-      emailjs.init("e0J6Ub-O34oAlNDmN"); 
+  <script type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+  </script>
+  <script type="text/javascript">
+   (function(){
+      emailjs.init({
+        publicKey: "e0J6Ub-O34oAlNDmN",
+      });
     })();
   </script>
 </head>
@@ -23,17 +26,17 @@
       <img src="imagenes/LOGO LSC.png" alt="Logo LSC" class="logo" />
     </div>
     <ul class="nav-links">
+
       <li><a href="#inicio">Inicio</a></li>
       <li><a href="#repuestos">Repuestos</a></li>
       <li><a href="#trabajos">Trabajos</a></li>
       <li><a href="#contacto">Contacto</a></li>
       
     </ul>
-    <h4>Las contraseñas de todos los usuarios son 123 </h4>
     <div class="nav-actions">
       <select id="selector-correo" onchange="loginUsuario()">
         <option value="">Iniciar sesión</option>
-        <option value="admin@lsc.com">Profesor</option>
+        <option value="Fausto@lsc.com">Profesor</option>
         <option value="juan@lsc.com">Jackie</option>
         <option value="sofia@lsc.com">Sofia</option>
         <option value="carlos@lsc.com">Damian</option>
@@ -76,6 +79,21 @@
       <button onclick="enviarTrabajo()">✅ Enviar trabajo</button>
     </div>
   </div>
+  <section id="ranking">
+    <h2>Ranking de Mecánicos</h2>
+    <table id="tabla-ranking">
+      <thead>
+        <tr>
+          <th>Posición</th>
+          <th>Nombre</th>
+          <th>Trabajos Realizados</th>
+          <th>Monto Ganado</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
 
   <section id="trabajos">
     <h2>Trabajos Realizados</h2>
@@ -100,17 +118,42 @@
     </div>
   </section>
 
-  <section id="contacto">
-    <h2>Contacto</h2>
 
-    <form id="form-contacto">
-      <input type="text" name="name" placeholder="Tu nombre" required />
-      <input type="email" name="email" placeholder="Tu correo" required />
-      <textarea name="message" placeholder="Tu mensaje" required></textarea>
-      <button type="submit">Enviar</button>
-    </form>
+  <section id="historial" class="oculto">
+    <h2>Historial de Trabajos Enviados</h2>
+    <table id="tabla-historial">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Mecánico</th>
+          <th>Trabajo</th>
+          <th>Precio</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
 
-    <div id="mensaje-enviado" class="oculto">✅ Enviado correctamente</div>
+
+
+  <section id="contacto" class="seccion-contenido">
+      <h2 style="text-align: center;">Contacto</h2>
+
+      <form id="form-contacto">
+
+      <div class="grupo-formulario">
+        <input type="text" name="name" placeholder="Tu nombre" required />
+      </div>
+      <div class="grupo-formulario">
+        <input type="email" name="email" placeholder="Tu correo" required />
+      </div>
+      <div class="grupo-formulario">
+        <textarea name="message" placeholder="Tu mensaje" required></textarea>
+      </div>
+        <button type="submit" class="btn-enviar">Enviar</button>
+      </form>
+
+      <div id="mensaje-enviado" class="oculto" style="text-align: center;">✅ Enviado correctamente</div>
   </section>
 
   <footer>
@@ -131,14 +174,47 @@
 
 
   <div id="modal-confirmar-vaciar" class="modal oculto">
-  <div class="modal-content">
-    <h3>¿Estás seguro de que querés vaciar el carrito?</h3>
-    <button onclick="confirmarVaciarCarrito()">✅ Sí, vaciar</button>
-    <button onclick="cerrarModalVaciar()">❌ Cancelar</button>
+    <div class="modal-content">
+      <h3>¿Estás seguro de que querés vaciar el carrito?</h3>
+      <button onclick="confirmarVaciarCarrito()">✅ Sí, vaciar</button>
+      <button onclick="cerrarModalVaciar()">❌ Cancelar</button>
+    </div>
   </div>
-</div>
-<button id="btn-backup" onclick="descargarBackup()" class="oculto">💾 Descargar backup</button>
+  <button id="btn-backup" onclick="descargarBackup()" class="oculto">💾 Descargar backup</button>
+
+
+
+  
+
+
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDydhu8CKKJESaFevigERi1CcjyGT6Npbg",
+    authDomain: "repuestos-lsc.firebaseapp.com",
+    databaseURL: "https://repuestos-lsc-default-rtdb.firebaseio.com",
+    projectId: "repuestos-lsc",
+    storageBucket: "repuestos-lsc.appspot.com",
+    messagingSenderId: "324020265702",
+    appId: "1:324020265702:web:ef82e451510ec6e35b5127",
+    measurementId: "G-T97DGGSLGZ"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  firebase.analytics();
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
 <script src="script.js"></script>
+
+
 </body>
 
 </html>
