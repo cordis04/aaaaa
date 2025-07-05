@@ -1,6 +1,6 @@
 // 🔐 Contraseñas por usuario
 const contraseñas = {
-  "fausto@lsc.com": "123",
+  "Fausto@lsc.com": "123",
   "juan@lsc.com": "123",
   "sofia@lsc.com": "123",
   "carlos@lsc.com": "123",
@@ -64,7 +64,7 @@ function confirmarLogin() {
 
   if (clave === contraseñas[correoSeleccionado]) {
     usuario = correoSeleccionado;
-    esAdmin = usuario === "fausto@lsc.com";
+    esAdmin = usuario === "Fausto@lsc.com";
 
     localStorage.setItem("usuario", usuario);
     localStorage.setItem("esAdmin", esAdmin);
