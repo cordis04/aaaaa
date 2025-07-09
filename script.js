@@ -661,38 +661,3 @@ function editarTrabajo(index) {
   renderizarTrabajos(); // Renderizar la tabla de trabajos
   mostrarMensajeEnviado("✅ Trabajo actualizado");
 }
-
-function registrarInicioSesion(usuario) {
-  const fechaHoraInicio = new Date();
-  historialSesiones.push({
-    usuario: usuario,
-    tipo: "Inicio de sesión",
-    fechaHora: fechaHoraInicio,
-    tiempoActivo: null // Inicialmente, no hay tiempo activo
-  });
-}
-
-
-function registrarCierreSesion(usuario) {
-  const fechaHoraFin = new Date();
-  const sesion = historialSesiones.find(s => s.usuario === usuario && s.tipo === "Inicio de sesión" && !s.tiempoActivo);
-
-  if (sesion) {
-    const tiempoActivo = (fechaHoraFin - sesion.fechaHora) / 1000; // Tiempo en segundos
-    sesion.tiempoActivo = tiempoActivo; // Guardar el tiempo activo
-    sesion.fechaHoraFin = fechaHoraFin; // Guardar la hora de cierre
-  }
-}
-
-function mostrarHistorialSesiones() {
-  const contenedorHistorial = document.getElementById("historial-sesiones");
-  contenedorHistorial.innerHTML = ""; // Limpiar contenido previo
-
-  historialSesiones.forEach((registro) => {
-    const tiempoActivo = registro.tiempoActivo !== null ? `${Math.floor(registro.tiempoActivo / 60)} min ${registro.tiempoActivo % 60} sec` : "Activo";
-    const div = document.createElement("div");
-    div.textContent = `${registro.fechaHora.toLocaleString()} - ${registro.usuario}: ${registro.tipo} - Tiempo activo: ${tiempoActivo}`;
-    contenedorHistorial.appendChild(div);
-  });
-}
-
