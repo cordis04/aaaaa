@@ -52,33 +52,7 @@ function loginUsuario() {
 }
 
 
-function confirmarLogin() {
-  const clave = document.getElementById("input-password").value;
 
-  if (clave === contraseñas[correoSeleccionado]) {
-    usuario = correoSeleccionado;
-    esAdmin = usuario === "Fausto@lsc.com";
-
-    localStorage.setItem("usuario", usuario);
-    localStorage.setItem("esAdmin", esAdmin);
-
-    mostrarMensajeEnviado(`Bienvenido, ${usuario.split("@")[0]}`);
-    document.getElementById("modal-login").classList.add("oculto");
-
-    if (esAdmin) {
-      document.getElementById("form-admin").classList.remove("oculto");
-      document.getElementById("form-trabajo").classList.remove("oculto");
-      renderizarRepuestos(); // Llama a renderizarRepuestos aquí
-      document.getElementById("btn-backup").classList.remove("oculto");
-    }
-    renderizarRepuestos();
-    document.getElementById("selector-correo").style.display = "none";
-    document.getElementById("btn-cerrar-sesion").style.display = "inline-block";
-  } else {
-    mostrarMensajeEnviado("❌ Contraseña incorrecta");
-    cerrarModalLogin();
-  }
-}
 
 function cerrarModalLogin() {
   document.getElementById("modal-login").classList.add("oculto");
@@ -293,42 +267,6 @@ function agregarTrabajo() {
   renderizarTrabajos();
 }
 
-function renderizarTrabajos() {
-  const tbody = document.querySelector("#tabla-trabajos tbody");
-  tbody.innerHTML = "";
-
-  trabajos.forEach((t, index) => {
-    const row = document.createElement("tr");
-
-    row.innerHTML = `
-      <td>${t.mecanico}</td>
-      <td>${t.trabajo}</td>
-      <td>$${t.precio}</td>
-    `;
-
-    // Si es admin, agregar acciones
-    if (esAdmin) {
-      const td = document.createElement("td");
-
-      const btnEditar = document.createElement("button");
-      btnEditar.textContent = "✏️";
-      btnEditar.onclick = () => editarTrabajo(index);
-
-      const btnEliminar = document.createElement("button");
-      btnEliminar.textContent = "🗑️";
-      btnEliminar.onclick = () => eliminarTrabajo(index);
-
-      td.appendChild(btnEditar);
-      td.appendChild(btnEliminar);
-
-      row.appendChild(td);
-    }
-
-    tbody.appendChild(row);
-  });
-
-  
-}
 
 
 
@@ -379,30 +317,7 @@ function cerrarSesion() {
 }
 
 
-function editarTrabajo(index) {
-  const t = trabajos[index];
 
-  const nuevoMecanico = prompt("Nuevo mecánico:", t.mecanico);
-  const nuevoTrabajo = prompt("Nuevo trabajo realizado:", t.trabajo);
-  const nuevoPrecio = prompt("Nuevo precio:", t.precio);
-
-  if (
-    nuevoMecanico !== null && nuevoMecanico.trim() !== "" &&
-    nuevoTrabajo !== null && nuevoTrabajo.trim() !== "" &&
-    nuevoPrecio !== null && nuevoPrecio.trim() !== "" && !isNaN(nuevoPrecio)
-  ) {
-    trabajos[index] = {
-      mecanico: nuevoMecanico.trim(),
-      trabajo: nuevoTrabajo.trim(),
-      precio: parseFloat(nuevoPrecio)
-    };
-    guardarTrabajos();
-    renderizarTrabajos();
-    mostrarMensajeEnviado("✅ Trabajo actualizado");
-  } else {
-    mostrarMensajeEnviado("❌ Por favor completá todos los campos correctamente");
-  }
-}
 
 
 function eliminarTrabajo(index) {
@@ -489,62 +404,7 @@ function cargarTrabajosFirebase() {
   });
 }
 
-function enviarTrabajo() {
-  if (!usuario || usuario === "") {
-    mostrarMensajeEnviado("❌ Debes iniciar sesión");
-    return;
-  }
 
-  if (carrito.length === 0) {
-    mostrarMensajeEnviado("⚠️ El carrito está vacío");
-    return;
-  }
-
-  const resumen = carrito.map(i => i.nombre).join(", ");
-  const total = parseFloat(document.getElementById("total-final").textContent);
-
-  // Verificar que el total sea un número válido
-  if (isNaN(total) || total <= 0) {
-    mostrarMensajeEnviado("❌ El total es inválido");
-    return;
-  }
-
-  const templateParams = {
-    user_email: "igna0409@gmail.com", 
-    name: usuario.split("@")[0],
-    user: usuario,
-    repuestos: resumen,
-    total: total.toFixed(2), // Asegurarse de que el total sea un string con dos decimales
-    email: usuario
-  };
-
-  console.log("📤 Enviando trabajo:", templateParams); 
-
-  emailjs.send("service_z7hd523", "template_trabajo", templateParams)
-    .then(() => {
-      mostrarMensajeEnviado("✅ Trabajo enviado correctamente al jefe.");
-
-      // Asegúrate de que trabajos sea un array
-      if (!Array.isArray(trabajos)) {
-        trabajos = []; // Inicializa como un array vacío si no lo es
-      }
-
-      // Agregar trabajo a la lista de trabajos
-      trabajos.push({ mecanico: usuario.split("@")[0], trabajo: resumen, precio: total });
-      guardarTrabajos(); // Guardar en Firebase
-      renderizarTrabajos(); // Renderizar la tabla de trabajos
-      actualizarRanking(); // Actualizar el ranking de mecánicos
-
-      carrito = [];
-      actualizarContadorCarrito();
-      toggleCarrito();
-      actualizarCarrito();
-    })
-    .catch((error) => {
-      console.error("❌ Error al enviar trabajo:", error);
-      mostrarMensajeEnviado("❌ Error al enviar el trabajo. Verificá la plantilla.");
-    });
-}
 
 
 
@@ -644,4 +504,168 @@ function renderizarRepuestos() {
   }
 }
 
+
+let historialSesiones = []; // Para registrar inicios y cierres de sesión
+
+function enviarTrabajo() {
+  if (!usuario || usuario === "") {
+    mostrarMensajeEnviado("❌ Debes iniciar sesión");
+    return;
+  }
+
+  if (carrito.length === 0) {
+    mostrarMensajeEnviado("⚠️ El carrito está vacío");
+    return;
+  }
+
+  const resumen = carrito.map(i => i.nombre).join(", ");
+  const total = parseFloat(document.getElementById("total-final").textContent);
+
+  // Verificar que el total sea un número válido
+  if (isNaN(total) || total <= 0) {
+    mostrarMensajeEnviado("❌ El total es inválido");
+    return;
+  }
+
+  const horaTrabajo = new Date().toLocaleString(); // Obtener la hora actual
+
+  const templateParams = {
+    user_email: "igna0409@gmail.com", 
+    name: usuario.split("@")[0],
+    user: usuario,
+    repuestos: resumen,
+    total: total.toFixed(2),
+    email: usuario,
+    hora: horaTrabajo // Agregar la hora al objeto
+  };
+
+  console.log("📤 Enviando trabajo:", templateParams); 
+
+  emailjs.send("service_z7hd523", "template_trabajo", templateParams)
+    .then(() => {
+      mostrarMensajeEnviado("✅ Trabajo enviado correctamente al jefe.");
+
+      // Asegúrate de que trabajos sea un array
+      if (!Array.isArray(trabajos)) {
+        trabajos = []; // Inicializa como un array vacío si no lo es
+      }
+
+      // Agregar trabajo a la lista de trabajos
+      trabajos.push({ 
+        mecanico: usuario.split("@")[0], 
+        trabajo: resumen, 
+        precio: total,
+        hora: horaTrabajo // Agregar la hora al objeto de trabajo
+      });
+      guardarTrabajos(); // Guardar en Firebase
+      renderizarTrabajos(); // Renderizar la tabla de trabajos
+      actualizarRanking(); // Actualizar el ranking de mecánicos
+
+      carrito = [];
+      actualizarContadorCarrito();
+      toggleCarrito();
+      actualizarCarrito();
+    })
+    .catch((error) => {
+      console.error("❌ Error al enviar trabajo:", error);
+      mostrarMensajeEnviado("❌ Error al enviar el trabajo. Verificá la plantilla.");
+    });
+}
+
+function renderizarTrabajos() {
+  const tbody = document.querySelector("#tabla-trabajos tbody");
+  tbody.innerHTML = "";
+
+  trabajos.forEach((t, index) => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${t.mecanico}</td>
+      <td>${t.trabajo}</td>
+      <td>$${t.precio}</td>
+      <td>${t.hora}</td> <!-- Agregar la hora aquí -->
+    `;
+
+    // Si es admin, agregar acciones
+    if (esAdmin) {
+      const td = document.createElement("td");
+
+      const btnEditar = document.createElement("button");
+      btnEditar.textContent = "✏️";
+      btnEditar.onclick = () => editarTrabajo(index);
+
+      const btnEliminar = document.createElement("button");
+      btnEliminar.textContent = "🗑️";
+      btnEliminar.onclick = () => eliminarTrabajo(index);
+
+      td.appendChild(btnEditar);
+      td.appendChild(btnEliminar);
+
+      row.appendChild(td);
+    }
+
+    tbody.appendChild(row);
+  });
+}
+
+function editarTrabajo(index) {
+  const t = trabajos[index];
+
+  const nuevoMecanico = prompt("Nuevo mecánico:", t.mecanico);
+  const nuevoTrabajo = prompt("Nuevo trabajo realizado:", t.trabajo);
+  const nuevoPrecio = prompt("Nuevo precio:", t.precio);
+
+  // Solo actualizar si se proporciona un nuevo valor
+  if (nuevoMecanico !== null && nuevoMecanico.trim() !== "") {
+    t.mecanico = nuevoMecanico.trim();
+  }
+
+  if (nuevoTrabajo !== null && nuevoTrabajo.trim() !== "") {
+    t.trabajo = nuevoTrabajo.trim();
+  }
+
+  if (nuevoPrecio !== null && nuevoPrecio.trim() !== "" && !isNaN(nuevoPrecio)) {
+    t.precio = parseFloat(nuevoPrecio);
+  }
+
+  // No modificar la hora, mantener el valor existente
+  // t.hora = t.hora; // Esto es innecesario, ya que no estamos cambiando la hora
+
+  guardarTrabajos(); // Guardar en Firebase
+  renderizarTrabajos(); // Renderizar la tabla de trabajos
+  mostrarMensajeEnviado("✅ Trabajo actualizado");
+}
+
+function registrarInicioSesion(usuario) {
+  const fechaHoraInicio = new Date();
+  historialSesiones.push({
+    usuario: usuario,
+    tipo: "Inicio de sesión",
+    fechaHora: fechaHoraInicio,
+    tiempoActivo: null // Inicialmente, no hay tiempo activo
+  });
+}
+
+function registrarCierreSesion(usuario) {
+  const fechaHoraFin = new Date();
+  const sesion = historialSesiones.find(s => s.usuario === usuario && s.tipo === "Inicio de sesión" && !s.tiempoActivo);
+
+  if (sesion) {
+    const tiempoActivo = (fechaHoraFin - sesion.fechaHora) / 1000; // Tiempo en segundos
+    sesion.tiempoActivo = tiempoActivo; // Guardar el tiempo activo
+    sesion.fechaHoraFin = fechaHoraFin; // Guardar la hora de cierre
+  }
+}
+
+function mostrarHistorialSesiones() {
+  const contenedorHistorial = document.getElementById("historial-sesiones");
+  contenedorHistorial.innerHTML = ""; // Limpiar contenido previo
+
+  historialSesiones.forEach((registro) => {
+    const tiempoActivo = registro.tiempoActivo !== null ? `${Math.floor(registro.tiempoActivo / 60)} min ${registro.tiempoActivo % 60} sec` : "Activo";
+    const div = document.createElement("div");
+    div.textContent = `${registro.fechaHora.toLocaleString()} - ${registro.usuario}: ${registro.tipo} - Tiempo activo: ${tiempoActivo}`;
+    contenedorHistorial.appendChild(div);
+  });
+}
 
