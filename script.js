@@ -51,7 +51,33 @@ function loginUsuario() {
   document.getElementById("modal-login").classList.remove("oculto");
 }
 
+function confirmarLogin() {
+  const clave = document.getElementById("input-password").value;
 
+  if (clave === contraseñas[correoSeleccionado]) {
+    usuario = correoSeleccionado;
+    esAdmin = usuario === "Fausto@lsc.com";
+
+    localStorage.setItem("usuario", usuario);
+    localStorage.setItem("esAdmin", esAdmin);
+
+    mostrarMensajeEnviado(`Bienvenido, ${usuario.split("@")[0]}`);
+    document.getElementById("modal-login").classList.add("oculto");
+
+    if (esAdmin) {
+      document.getElementById("form-admin").classList.remove("oculto");
+      document.getElementById("form-trabajo").classList.remove("oculto");
+      renderizarRepuestos(); // Llama a renderizarRepuestos aquí
+      document.getElementById("btn-backup").classList.remove("oculto");
+    }
+    renderizarRepuestos();
+    document.getElementById("selector-correo").style.display = "none";
+    document.getElementById("btn-cerrar-sesion").style.display = "inline-block";
+  } else {
+    mostrarMensajeEnviado("❌ Contraseña incorrecta");
+    cerrarModalLogin();
+  }
+}
 
 
 function cerrarModalLogin() {
