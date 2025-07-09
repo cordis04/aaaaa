@@ -564,3 +564,7 @@ button {
 }
 
 
+.repuestos-grid .card {
+  margin-bottom: 10px; /* Espacio entre los elementos */
+}
+
