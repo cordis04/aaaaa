@@ -672,6 +672,7 @@ function registrarInicioSesion(usuario) {
   });
 }
 
+
 function registrarCierreSesion(usuario) {
   const fechaHoraFin = new Date();
   const sesion = historialSesiones.find(s => s.usuario === usuario && s.tipo === "Inicio de sesión" && !s.tiempoActivo);
